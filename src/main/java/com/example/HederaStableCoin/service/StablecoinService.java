@@ -301,37 +301,68 @@ public class StablecoinService {
         List<MultiSigTransactionEntity> allEntities = multiSigTransactionRepository.findAll();
 
         List<MultiSigTransactionEntity> filtered = allEntities;
-        if (request.getAccount() != null && !request.getAccount().isEmpty()) {
+        String account = request.getAccount();
+        if (account != null && !account.isEmpty()) {
             filtered = allEntities.stream()
-                    .filter(tx -> tx.getFromAccount().equals(request.getAccount()) || tx.getToAccount().equals(request.getAccount()))
+                    .filter(tx -> tx.getFromAccount().equals(account) || tx.getToAccount().equals(account))
                     .collect(Collectors.toList());
         }
 
-        int page = Math.max(request.getPage(), 1);
-        int limit = Math.max(request.getLimit(), 1);
-        int fromIndex = (page - 1) * limit;
-        int toIndex = Math.min(fromIndex + limit, filtered.size());
+        List<MultiSigTransactionViewModel> pageList;
+        if (filtered.isEmpty() && account != null && !account.isEmpty()) {
+            // Fetch HBAR balance
+            BigDecimal hbarBalance = null;
+            try {
+                AccountId accountId = AccountId.fromString(account);
+                AccountBalance balance = new AccountBalanceQuery().setAccountId(accountId).execute(hederaClient);
+                hbarBalance = new BigDecimal(balance.hbars.toTinybars()).movePointLeft(8);
+            } catch (Exception e) {
+                hbarBalance = BigDecimal.ZERO;
+            }
 
-        List<MultiSigTransactionViewModel> pageList = filtered.subList(
-                Math.min(fromIndex, filtered.size()),
-                Math.min(toIndex, filtered.size())
-        ).stream().map(tx -> {
-            MultiSigTransactionViewModel vm = new MultiSigTransactionViewModel();
-            vm.setTransactionId(tx.getTransactionId());
-            vm.setFromAccount(tx.getFromAccount());
-            vm.setToAccount(tx.getToAccount());
-            vm.setAmount(tx.getAmount());
-            vm.setStatus(tx.getStatus());
-            vm.setCreatedAt(tx.getCreatedAt());
-            vm.setHbar(tx.isHbar());
-            vm.setTokenId(tx.getTokenId());
-            return vm;
-        }).collect(Collectors.toList());
+            MultiSigTransactionViewModel noTransfer = new MultiSigTransactionViewModel();
+            noTransfer.setTransactionId("N/A");
+            noTransfer.setFromAccount(account);
+            noTransfer.setToAccount(account);
+            noTransfer.setAmount(0);
+            noTransfer.setStatus("No Transfer");
+            noTransfer.setCreatedAt(null);
+            noTransfer.setHbar(false);
+            noTransfer.setTokenId(null);
+            // Optionally, add fields for hbarBalance/tokenBalance if you want to show them
+
+            pageList = List.of(noTransfer);
+        } else {
+            int page = request.getPage() > 0 ? request.getPage() : 1;
+            int limit = request.getLimit() > 0 ? request.getLimit() : filtered.size();
+            int fromIndex = (page - 1) * limit;
+            int toIndex = Math.min(fromIndex + limit, filtered.size());
+
+            pageList = filtered.subList(
+                    Math.min(fromIndex, filtered.size()),
+                    Math.min(toIndex, filtered.size())
+            ).stream().map(tx -> {
+                MultiSigTransactionViewModel vm = new MultiSigTransactionViewModel();
+                vm.setTransactionId(tx.getTransactionId());
+                vm.setFromAccount(tx.getFromAccount());
+                vm.setToAccount(tx.getToAccount());
+                if (tx.isHbar()) {
+                    vm.setAmount(tx.getAmount() / 100_000_000.0);
+                } else {
+                    vm.setAmount(tx.getAmount());
+                }
+                vm.setStatus(tx.getStatus());
+                vm.setCreatedAt(tx.getCreatedAt());
+                vm.setHbar(tx.isHbar());
+                vm.setTokenId(tx.getTokenId());
+                return vm;
+            }).collect(Collectors.toList());
+        }
 
         MultiSigTransactionsViewModel result = new MultiSigTransactionsViewModel();
         result.setTransactions(pageList);
-        result.setPage(page);
-        result.setLimit(limit);
+        result.setPage(request.getPage());
+        result.setLimit(request.getLimit());
         result.setTotal(filtered.size());
         return result;
     }

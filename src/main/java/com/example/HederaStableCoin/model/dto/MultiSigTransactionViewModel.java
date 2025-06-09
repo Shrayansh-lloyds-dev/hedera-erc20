@@ -11,7 +11,7 @@ public class MultiSigTransactionViewModel {
     private String transactionId;
     private String fromAccount;
     private String toAccount;
-    private long amount;
+    private double amount;
     private String status;
     private Instant createdAt;
     private boolean Hbar;
