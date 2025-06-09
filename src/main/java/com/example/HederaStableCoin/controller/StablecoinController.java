@@ -92,5 +92,24 @@ public class StablecoinController {
         MultiSigTransactionsViewModel response = stablecoinService.getTransactions(request);
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/transaction/{transactionId}")
+    public ResponseEntity<?> getTransactionStatus(@PathVariable String transactionId) {
+        try {
+            MultiSigTransactionViewModel tx = stablecoinService.getTransactionById(transactionId);
+            if (tx == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Transaction not found");
+            }
+            return ResponseEntity.ok(tx);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/mint")
+    public ResponseEntity<MintTokenResponse> mintToken(@RequestBody MintTokenRequest request) {
+        MintTokenResponse response = stablecoinService.mintToken(request);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
 }
 

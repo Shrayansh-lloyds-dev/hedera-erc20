@@ -30,7 +30,7 @@ public class StablecoinService {
     private InMemoryStablecoinStore stablecoinStore;
 
     @Autowired
-    private MultiSigTransactionRepository multiSigTransactionRepository ;
+    private MultiSigTransactionRepository multiSigTransactionRepository;
 
     @Autowired
     private StablecoinRepository stablecoinRepository;
@@ -365,5 +365,61 @@ public class StablecoinService {
         result.setLimit(request.getLimit());
         result.setTotal(filtered.size());
         return result;
+    }
+
+    public MultiSigTransactionViewModel getTransactionById(String transactionId) {
+        MultiSigTransactionEntity entity = multiSigTransactionRepository.findByTransactionId(transactionId);
+        if (entity == null) {
+            return null;
+        }
+        MultiSigTransactionViewModel vm = new MultiSigTransactionViewModel();
+        vm.setTransactionId(entity.getTransactionId());
+        vm.setFromAccount(entity.getFromAccount());
+        vm.setToAccount(entity.getToAccount());
+        vm.setAmount(entity.isHbar() ? entity.getAmount() / 100_000_000.0 : entity.getAmount());
+        vm.setStatus(entity.getStatus());
+        vm.setCreatedAt(entity.getCreatedAt());
+        vm.setHbar(entity.isHbar());
+        vm.setTokenId(entity.getTokenId());
+        return vm;
+    }
+
+    public MintTokenResponse mintToken(MintTokenRequest request) {
+        try {
+            TokenId tokenId = TokenId.fromString(request.getTokenId());
+            AccountId treasuryAccountId = AccountId.fromString(request.getTreasuryAccountId());
+            PrivateKey treasuryPrivateKey = PrivateKey.fromString(request.getTreasuryPrivateKey());
+
+            // Mint tokens
+            TokenMintTransaction mintTx = new TokenMintTransaction()
+                    .setTokenId(tokenId)
+                    .setAmount(request.getAmount())
+                    .freezeWith(hederaClient)
+                    .sign(treasuryPrivateKey);
+
+            TransactionResponse response = mintTx.execute(hederaClient);
+            TransactionReceipt receipt = response.getReceipt(hederaClient);
+
+            // Get new total supply
+            TokenInfo tokenInfo = new TokenInfoQuery().setTokenId(tokenId).execute(hederaClient);
+
+            // Store mint transaction in DB
+            MultiSigTransactionEntity txEntity = new MultiSigTransactionEntity();
+            txEntity.setTransactionId(response.transactionId.toString());
+            txEntity.setFromAccount(treasuryAccountId.toString());
+            txEntity.setToAccount(treasuryAccountId.toString());
+            txEntity.setAmount(request.getAmount());
+            txEntity.setStatus("MINTED");
+            txEntity.setCreatedAt(java.time.Instant.now());
+            txEntity.setTokenId(tokenId.toString());
+            txEntity.setIsHbar(false);
+            // Optionally, store receipt as string if you add a field in the entity
+            // txEntity.setReceipt(receipt.toString());
+            multiSigTransactionRepository.save(txEntity);
+
+            return new MintTokenResponse(200, "Mint successful", tokenId.toString(), tokenInfo.totalSupply, receipt);
+        } catch (Exception e) {
+            return new MintTokenResponse(500, "Mint failed: " + e.getMessage(), request.getTokenId(), 0, null);
+        }
     }
 }
