@@ -46,31 +46,51 @@ public class StablecoinController {
     }
 
     @PostMapping("/getInfo")
-    public ResponseEntity<StableCoinViewModel> getInfo(@RequestBody GetStableCoinDetailsRequest request) {
-        try {
-            return ResponseEntity.ok(stablecoinService.getInfo(request));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
+    public ResponseEntity<GetStableCoinInfoResponse> getInfo(@RequestBody GetStableCoinDetailsRequest request) {
+        GetStableCoinInfoResponse response = stablecoinService.getInfo(request);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
     @PostMapping("/getBalanceOf")
-    public ResponseEntity<Balance> getBalanceOf(@RequestBody GetAccountBalanceRequest request) {
-        try {
-            return ResponseEntity.ok(stablecoinService.getBalanceOf(request));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
+    public ResponseEntity<BalanceResponse> getBalanceOf(@RequestBody GetAccountBalanceRequest request) {
+        BalanceResponse response = stablecoinService.getBalanceOf(request);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
     @PostMapping("/getBalanceOfHBAR")
-    public ResponseEntity<Balance> getBalanceOfHBAR(@RequestBody GetAccountBalanceHBARRequest request) {
-        try {
-            return ResponseEntity.ok(stablecoinService.getBalanceOfHBAR(request));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
+    public ResponseEntity<BalanceResponse> getBalanceOfHBAR(@RequestBody GetAccountBalanceHBARRequest request) {
+        BalanceResponse response = stablecoinService.getBalanceOfHBAR(request);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
+    @PostMapping("/associate")
+    public ResponseEntity<AssociateTokenResponse> associate(@RequestBody AssociateTokenRequest request) {
+        AssociateTokenResponse response = stablecoinService.associateToken(request);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+
+    @PostMapping("/isAccountAssociated")
+    public ResponseEntity<IsAccountAssociatedResponse> isAccountAssociated(@RequestBody IsAccountAssociatedTokenRequest request) {
+        IsAccountAssociatedResponse response = stablecoinService.isAccountAssociated(request);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+
+    @PostMapping("/transferToken")
+    public ResponseEntity<TransfersResponse> transferToken(@RequestBody TransfersRequest request) {
+        TransfersResponse response = stablecoinService.transferToken(request);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+
+    @PostMapping("/transferHbar")
+    public ResponseEntity<TransferHbarResponse> transferHbar(@RequestBody TransferHbarRequest request) {
+        TransferHbarResponse response = stablecoinService.transferHbar(request);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+
+    @PostMapping("/getTransactions")
+    public ResponseEntity<MultiSigTransactionsViewModel> getTransactions(@RequestBody GetTransactionsRequest request) {
+        MultiSigTransactionsViewModel response = stablecoinService.getTransactions(request);
+        return ResponseEntity.ok(response);
+    }
 }
 

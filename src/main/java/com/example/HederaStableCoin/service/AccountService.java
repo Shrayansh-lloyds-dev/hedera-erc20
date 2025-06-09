@@ -2,6 +2,8 @@ package com.example.HederaStableCoin.service;
 
 import com.example.HederaStableCoin.model.dto.AccountRequestDTO;
 import com.example.HederaStableCoin.model.dto.AccountResponseDTO;
+import com.example.HederaStableCoin.model.entity.AccountEntity;
+import com.example.HederaStableCoin.repository.AccountRepository;
 import com.example.HederaStableCoin.repository.InMemoryRoleStore;
 import com.example.HederaStableCoin.repository.InMemoryStablecoinStore;
 import com.hedera.hashgraph.sdk.*;
@@ -21,6 +23,8 @@ public class AccountService {
     private Client hederaClient;
     @Autowired
     private InMemoryStablecoinStore inMemoryStablecoinStore;
+    @Autowired
+    private AccountRepository accountRepository;
 
     public AccountResponseDTO createAccount(AccountRequestDTO request) throws Exception {
         PrivateKey privateKey = PrivateKey.generateED25519();
@@ -35,6 +39,13 @@ public class AccountService {
         response.setPrivateKey(privateKey.toString());
         response.setPublicKey(publicKey.toString());
         response.setRole(request.getRole());
+
+        AccountEntity entity = new AccountEntity();
+        entity.setAccountId(response.getAccountId());
+        entity.setPrivateKey(response.getPrivateKey());
+        entity.setPublicKey(response.getPublicKey());
+        entity.setRole(response.getRole());
+        accountRepository.save(entity);
 
         return response;
     }
@@ -56,8 +67,17 @@ public class AccountService {
     }
 
     public List<Map<String, String>> getAllAccounts() {
-        return roleStore.getAllAccounts();
+        List<AccountEntity> entities = accountRepository.findAll();
+        List<Map<String, String>> accounts = new java.util.ArrayList<>();
+        for (AccountEntity entity : entities) {
+            Map<String, String> map = new HashMap<>();
+            map.put("accountId", entity.getAccountId());
+            map.put("privateKey", entity.getPrivateKey());
+            map.put("publicKey", entity.getPublicKey());
+            map.put("role", entity.getRole().toString());
+            accounts.add(map);
+        }
+        return accounts;
     }
-
 
 }
