@@ -1,0 +1,372 @@
+{
+  "name": "StableCoin",
+  "version": "1",
+  "items": [
+    {
+      "type": "http",
+      "name": "Assoicate Token",
+      "filename": "Assoicate Token.bru",
+      "seq": 4,
+      "request": {
+        "url": "http://localhost:7272/api/stablecoin/associate",
+        "method": "POST",
+        "headers": [],
+        "params": [],
+        "body": {
+          "mode": "json",
+          "json": "{\n  \"accountId\": \"0.0.6131994\",\n  \"privateKey\": \"302e020100300506032b6570042204205624443aaf57eadcb2184e735860ad2b810920064653f476a6d2f2ea61f0fdfe\",\n  \"tokenId\": \"0.0.6135273\"\n}",
+          "formUrlEncoded": [],
+          "multipartForm": [],
+          "file": []
+        },
+        "script": {},
+        "vars": {},
+        "assertions": [],
+        "tests": "",
+        "docs": "",
+        "auth": {
+          "mode": "inherit"
+        }
+      }
+    },
+    {
+      "type": "http",
+      "name": "Get ALL Accounts",
+      "filename": "Get ALL Accounts.bru",
+      "seq": 8,
+      "request": {
+        "url": "http://localhost:7272/api/account/all",
+        "method": "GET",
+        "headers": [],
+        "params": [],
+        "body": {
+          "mode": "none",
+          "formUrlEncoded": [],
+          "multipartForm": [],
+          "file": []
+        },
+        "script": {},
+        "vars": {},
+        "assertions": [],
+        "tests": "",
+        "docs": "",
+        "auth": {
+          "mode": "inherit"
+        }
+      }
+    },
+    {
+      "type": "http",
+      "name": "Get BalanceOf",
+      "filename": "Get BalanceOf.bru",
+      "seq": 9,
+      "request": {
+        "url": "http://localhost:7272/api/stablecoin/getBalanceOf",
+        "method": "POST",
+        "headers": [],
+        "params": [],
+        "body": {
+          "mode": "json",
+          "json": "{\n  \"tokenId\": \"0.0.6135264\",\n  \"targetId\":\"0.0.6131994\"\n}",
+          "formUrlEncoded": [],
+          "multipartForm": [],
+          "file": []
+        },
+        "script": {},
+        "vars": {},
+        "assertions": [],
+        "tests": "",
+        "docs": "",
+        "auth": {
+          "mode": "inherit"
+        }
+      }
+    },
+    {
+      "type": "http",
+      "name": "Get Transaction By Hash",
+      "filename": "Get Transaction By Hash.bru",
+      "seq": 12,
+      "request": {
+        "url": "http://localhost:7272/api/stablecoin/transaction/0.0.6038731@1749464475.742126819",
+        "method": "GET",
+        "headers": [],
+        "params": [],
+        "body": {
+          "mode": "none",
+          "formUrlEncoded": [],
+          "multipartForm": [],
+          "file": []
+        },
+        "script": {},
+        "vars": {},
+        "assertions": [],
+        "tests": "",
+        "docs": "",
+        "auth": {
+          "mode": "inherit"
+        }
+      }
+    },
+    {
+      "type": "http",
+      "name": "Get Transaction",
+      "filename": "Get Transaction.bru",
+      "seq": 8,
+      "request": {
+        "url": "http://localhost:7272/api/stablecoin/getTransactions",
+        "method": "POST",
+        "headers": [],
+        "params": [],
+        "body": {
+          "mode": "json",
+          "json": "{\n  \"page\": 0,\n  \"limit\": 0,\n  \"account\": \"0.0.6131994\"\n}",
+          "formUrlEncoded": [],
+          "multipartForm": [],
+          "file": []
+        },
+        "script": {},
+        "vars": {},
+        "assertions": [],
+        "tests": "",
+        "docs": "",
+        "auth": {
+          "mode": "inherit"
+        }
+      }
+    },
+    {
+      "type": "http",
+      "name": "GetBalanceHbars",
+      "filename": "GetBalanceHbars.bru",
+      "seq": 10,
+      "request": {
+        "url": "http://localhost:7272/api/stablecoin/getBalanceOfHBAR",
+        "method": "POST",
+        "headers": [],
+        "params": [],
+        "body": {
+          "mode": "json",
+          "json": "{\n  \"treasuryAccountId\": \"0.0.6131994\"\n}",
+          "formUrlEncoded": [],
+          "multipartForm": [],
+          "file": []
+        },
+        "script": {},
+        "vars": {},
+        "assertions": [],
+        "tests": "",
+        "docs": "",
+        "auth": {
+          "mode": "inherit"
+        }
+      }
+    },
+    {
+      "type": "http",
+      "name": "Mint Coins",
+      "filename": "Mint Coins.bru",
+      "seq": 13,
+      "request": {
+        "url": "http://localhost:7272/api/stablecoin/mint",
+        "method": "POST",
+        "headers": [],
+        "params": [],
+        "body": {
+          "mode": "json",
+          "json": "{\n  \"tokenId\": \"0.0.6135264\",\n  \"treasuryAccountId\": \"0.0.6131994\",\n  \"treasuryPrivateKey\": \"302e020100300506032b6570042204205624443aaf57eadcb2184e735860ad2b810920064653f476a6d2f2ea61f0fdfe\",\n  \"amount\": 100\n}",
+          "formUrlEncoded": [],
+          "multipartForm": [],
+          "file": []
+        },
+        "script": {},
+        "vars": {},
+        "assertions": [],
+        "tests": "",
+        "docs": "",
+        "auth": {
+          "mode": "inherit"
+        }
+      }
+    },
+    {
+      "type": "http",
+      "name": "Stable Coin Balance",
+      "filename": "Stable Coin Balance.bru",
+      "seq": 6,
+      "request": {
+        "url": "http://localhost:7272/api/stablecoin/balance",
+        "method": "GET",
+        "headers": [],
+        "params": [],
+        "body": {
+          "mode": "none",
+          "formUrlEncoded": [],
+          "multipartForm": [],
+          "file": []
+        },
+        "script": {},
+        "vars": {},
+        "assertions": [],
+        "tests": "",
+        "docs": "",
+        "auth": {
+          "mode": "inherit"
+        }
+      }
+    },
+    {
+      "type": "http",
+      "name": "TOKEN CREATION",
+      "filename": "TOKEN CREATION.bru",
+      "seq": 3,
+      "request": {
+        "url": "http://localhost:7272/api/stablecoin/create",
+        "method": "POST",
+        "headers": [],
+        "params": [],
+        "body": {
+          "mode": "json",
+          "json": "{\n  \"name\": \"Pound\",\n  \"symbol\": \"PD\",\n  \"initialSupply\": 5000000,\n  \"decimals\": 7,\n  \"treasuryAccountId\": \"0.0.6135267\",\n  \"treasuryPrivateKey\": \"302e020100300506032b6570042204200af5f811daa16149325a734f875640ac7f6b0ca101746338b81ab81c507f491c\"\n}",
+          "formUrlEncoded": [],
+          "multipartForm": [],
+          "file": []
+        },
+        "script": {},
+        "vars": {},
+        "assertions": [],
+        "tests": "",
+        "docs": "",
+        "auth": {
+          "mode": "inherit"
+        }
+      }
+    },
+    {
+      "type": "http",
+      "name": "Transfer Hbars",
+      "filename": "Transfer Hbars.bru",
+      "seq": 11,
+      "request": {
+        "url": "http://localhost:7272/api/stablecoin/transferHbar",
+        "method": "POST",
+        "headers": [],
+        "params": [],
+        "body": {
+          "mode": "json",
+          "json": "{\n  \"fromAccountId\": \"0.0.6135267\",\n  \"fromPrivateKey\": \"302e020100300506032b6570042204200af5f811daa16149325a734f875640ac7f6b0ca101746338b81ab81c507f491c\",\n  \"toAccountId\": \"0.0.6131994\",\n  \"amount\": 5\n}",
+          "formUrlEncoded": [],
+          "multipartForm": [],
+          "file": []
+        },
+        "script": {},
+        "vars": {},
+        "assertions": [],
+        "tests": "",
+        "docs": "",
+        "auth": {
+          "mode": "inherit"
+        }
+      }
+    },
+    {
+      "type": "http",
+      "name": "Transfer Token",
+      "filename": "Transfer Token.bru",
+      "seq": 5,
+      "request": {
+        "url": "http://localhost:7272/api/stablecoin/transferToken",
+        "method": "POST",
+        "headers": [],
+        "params": [],
+        "body": {
+          "mode": "json",
+          "json": "{\n  \"tokenId\": \"0.0.6135273\",\n  \"fromAccountId\": \"0.0.6135267\",\n  \"fromPrivateKey\": \"302e020100300506032b6570042204200af5f811daa16149325a734f875640ac7f6b0ca101746338b81ab81c507f491c\",\n  \"targetId\": \"0.0.6131994\",\n  \"amount\": 100\n}",
+          "formUrlEncoded": [],
+          "multipartForm": [],
+          "file": []
+        },
+        "script": {},
+        "vars": {},
+        "assertions": [],
+        "tests": "",
+        "docs": "",
+        "auth": {
+          "mode": "inherit"
+        }
+      }
+    },
+    {
+      "type": "http",
+      "name": "USER CREATION",
+      "filename": "USER CREATION.bru",
+      "seq": 2,
+      "request": {
+        "url": "http://localhost:7272/api/account/create",
+        "method": "POST",
+        "headers": [],
+        "params": [],
+        "body": {
+          "mode": "json",
+          "json": "{\n  \"alias\": \"Charlie\",\n  \"role\": \"ISSUER\"\n}",
+          "formUrlEncoded": [],
+          "multipartForm": [],
+          "file": []
+        },
+        "script": {},
+        "vars": {},
+        "assertions": [],
+        "tests": "",
+        "docs": "",
+        "auth": {
+          "mode": "inherit"
+        }
+      }
+    },
+    {
+      "type": "http",
+      "name": "Get Prices",
+      "filename": "Get Prices.bru",
+      "seq": 14,
+      "request": {
+        "url": "http://localhost:7272/api/getCurrencyPrices?currency=USD",
+        "method": "GET",
+        "headers": [],
+        "params": [
+          {
+            "name": "currency",
+            "value": "USD",
+            "type": "query",
+            "enabled": true
+          }
+        ],
+        "body": {
+          "mode": "none",
+          "formUrlEncoded": [],
+          "multipartForm": [],
+          "file": []
+        },
+        "script": {},
+        "vars": {},
+        "assertions": [],
+        "tests": "",
+        "docs": "",
+        "auth": {
+          "mode": "inherit"
+        }
+      }
+    }
+  ],
+  "environments": [],
+  "brunoConfig": {
+    "version": "1",
+    "name": "StableCoin",
+    "type": "collection",
+    "ignore": [
+      "node_modules",
+      ".git"
+    ],
+    "size": 0.0031604766845703125,
+    "filesCount": 12
+  }
+}
