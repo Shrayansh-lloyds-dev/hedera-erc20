@@ -17,4 +17,5 @@ public class AccountResponseDTO {
     private String privateKey;
     private String publicKey;
     private RoleType role;
+    private String alias;
 }

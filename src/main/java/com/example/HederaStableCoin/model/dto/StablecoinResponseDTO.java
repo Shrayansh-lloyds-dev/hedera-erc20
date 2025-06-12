@@ -1,6 +1,7 @@
 package com.example.HederaStableCoin.model.dto;
 
 
+import com.hedera.hashgraph.sdk.TransactionReceipt;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,5 +18,6 @@ public class StablecoinResponseDTO {
     private String tokenId;
     private String tokenName;
     private String symbol;
+    private String treasuryDisplayName;
     private Object receipt;
 }

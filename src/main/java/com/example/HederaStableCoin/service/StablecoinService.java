@@ -3,8 +3,10 @@ package com.example.HederaStableCoin.service;
 
 import com.example.HederaStableCoin.model.StablecoinDetails;
 import com.example.HederaStableCoin.model.dto.*;
+import com.example.HederaStableCoin.model.entity.AccountEntity;
 import com.example.HederaStableCoin.model.entity.MultiSigTransactionEntity;
 import com.example.HederaStableCoin.model.entity.StablecoinEntity;
+import com.example.HederaStableCoin.repository.AccountRepository;
 import com.example.HederaStableCoin.repository.InMemoryStablecoinStore;
 import com.example.HederaStableCoin.repository.MultiSigTransactionRepository;
 import com.example.HederaStableCoin.repository.StablecoinRepository;
@@ -28,6 +30,9 @@ public class StablecoinService {
 
     @Autowired
     private InMemoryStablecoinStore stablecoinStore;
+
+    @Autowired
+    private AccountRepository accountRepository;
 
     @Autowired
     private MultiSigTransactionRepository multiSigTransactionRepository;
@@ -56,6 +61,9 @@ public class StablecoinService {
         TransactionReceipt receipt = response.getReceipt(hederaClient);
         TokenId tokenId = receipt.tokenId;
 
+        AccountEntity treasuryAccount = accountRepository.findByAccountId(request.getTreasuryAccountId());
+        String treasuryDisplayName = treasuryAccount != null ? treasuryAccount.getDisplayName() : null;
+
         StablecoinEntity entity = new StablecoinEntity();
         entity.setTokenId(tokenId.toString());
         entity.setName(request.getName());
@@ -71,6 +79,7 @@ public class StablecoinService {
                 tokenId.toString(),
                 request.getName(),
                 request.getSymbol(),
+                treasuryDisplayName,
                 receipt
         );
     }
@@ -89,12 +98,17 @@ public class StablecoinService {
                     .setAccountId(tokenInfo.treasuryAccountId)
                     .execute(hederaClient);
 
+            AccountEntity treasuryAccount = accountRepository.findByAccountId(tokenInfo.treasuryAccountId.toString());
+            String treasuryDisplayName = treasuryAccount != null ? treasuryAccount.getDisplayName() : null;
+
+
             tokenData.put("tokenId", tokenId.toString());
             tokenData.put("name", tokenInfo.name);
             tokenData.put("symbol", tokenInfo.symbol);
             tokenData.put("decimals", tokenInfo.decimals);
             tokenData.put("initialSupply", tokenInfo.totalSupply);
             tokenData.put("treasuryAccountId", tokenInfo.treasuryAccountId.toString());
+            tokenData.put("treasuryDisplayName", treasuryDisplayName);
             tokenData.put("hbarBalance", accountBalance.hbars.toTinybars());
             tokenData.put("tokenBalance", accountBalance.tokens.getOrDefault(tokenId, 0L));
             result.add(tokenData);

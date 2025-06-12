@@ -34,17 +34,20 @@ public class AccountService {
         AccountId newAccountId = txResponse.getReceipt(hederaClient).accountId;
         roleStore.assignRole(newAccountId.toString(), request.getRole());
         roleStore.Storekeys(newAccountId.toString(), privateKey.toString(), publicKey.toString());
+
         AccountResponseDTO response = new AccountResponseDTO();
         response.setAccountId(newAccountId.toString());
         response.setPrivateKey(privateKey.toString());
         response.setPublicKey(publicKey.toString());
         response.setRole(request.getRole());
+        response.setAlias(request.getAlias());
 
         AccountEntity entity = new AccountEntity();
         entity.setAccountId(response.getAccountId());
         entity.setPrivateKey(response.getPrivateKey());
         entity.setPublicKey(response.getPublicKey());
         entity.setRole(response.getRole());
+        entity.setDisplayName(request.getAlias());
         accountRepository.save(entity);
 
         return response;
@@ -75,6 +78,7 @@ public class AccountService {
             map.put("privateKey", entity.getPrivateKey());
             map.put("publicKey", entity.getPublicKey());
             map.put("role", entity.getRole().toString());
+            map.put("alias", entity.getDisplayName());
             accounts.add(map);
         }
         return accounts;

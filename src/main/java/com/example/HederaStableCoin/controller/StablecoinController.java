@@ -30,7 +30,7 @@ public class StablecoinController {
             StablecoinResponseDTO errorResponse = new StablecoinResponseDTO(
                     400,
                     "Error creating token: " + e.getMessage(),
-                    null, null, null, null
+                    null, null, null, null,null
             );
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         }
