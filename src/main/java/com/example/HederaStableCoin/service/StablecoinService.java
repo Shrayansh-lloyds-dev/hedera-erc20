@@ -40,10 +40,15 @@ public class StablecoinService {
     @Autowired
     private StablecoinRepository stablecoinRepository;
 
+    @Autowired
+    private FireblockService fireblockService;
+
     public StablecoinResponseDTO createStablecoin(StablecoinRequestDTO request) throws PrecheckStatusException, TimeoutException, ReceiptStatusException {
         AccountId treasuryAccountId = AccountId.fromString(request.getTreasuryAccountId());
         PrivateKey treasuryPrivateKey = PrivateKey.fromString(request.getTreasuryPrivateKey());
         PublicKey treasuryPublicKey = treasuryPrivateKey.getPublicKey();
+
+
 
         TokenCreateTransaction tx = new TokenCreateTransaction()
                 .setTokenName(request.getName())
