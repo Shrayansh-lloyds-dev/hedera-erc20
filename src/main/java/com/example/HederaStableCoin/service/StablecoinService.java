@@ -10,15 +10,16 @@ import com.example.HederaStableCoin.repository.AccountRepository;
 import com.example.HederaStableCoin.repository.InMemoryStablecoinStore;
 import com.example.HederaStableCoin.repository.MultiSigTransactionRepository;
 import com.example.HederaStableCoin.repository.StablecoinRepository;
+import com.example.HederaStableCoin.util.FireblocksJwtGenerator;
 import com.hedera.hashgraph.sdk.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.OutputStream;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.*;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
@@ -41,14 +42,39 @@ public class StablecoinService {
     private StablecoinRepository stablecoinRepository;
 
     @Autowired
-    private FireblockService fireblockService;
+    private FireblocksJwtGenerator fireblocksJwtGenerator;
 
-    public StablecoinResponseDTO createStablecoin(StablecoinRequestDTO request) throws PrecheckStatusException, TimeoutException, ReceiptStatusException {
+//    public String signMessage(String vaultAccountId, String base64Message) throws Exception {
+//        String jwtToken = fireblocksJwtGenerator.generateJwt();
+//        System.out.println("jwtToken: " + jwtToken);
+//        URL url = new URL("https://sandbox-api.fireblocks.io/v1/vault/accounts/" + vaultAccountId + "/sign_message");
+//        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+//
+//        conn.setRequestMethod("POST");
+//        conn.setRequestProperty("Authorization", "Bearer " + jwtToken);
+//        conn.setRequestProperty("Content-Type", "application/json");
+//        conn.setDoOutput(true);
+//
+//
+//        String jsonInputString = "{ \"messages\": [\"" + base64Message + "\"] }";
+//
+//        try (OutputStream os = conn.getOutputStream()) {
+//            byte[] input = jsonInputString.getBytes("utf-8");
+//            os.write(input, 0, input.length);
+//        }
+//
+//        int code = conn.getResponseCode();
+//        if (code == 200 || code == 201) {
+//            return "Success";
+//        } else {
+//            throw new RuntimeException("Failed to sign message: HTTP error code: " + code);
+//        }
+//    }
+
+    public StablecoinResponseDTO createStablecoin(StablecoinRequestDTO request) throws Exception {
         AccountId treasuryAccountId = AccountId.fromString(request.getTreasuryAccountId());
         PrivateKey treasuryPrivateKey = PrivateKey.fromString(request.getTreasuryPrivateKey());
         PublicKey treasuryPublicKey = treasuryPrivateKey.getPublicKey();
-
-
 
         TokenCreateTransaction tx = new TokenCreateTransaction()
                 .setTokenName(request.getName())
@@ -61,6 +87,11 @@ public class StablecoinService {
                 .setFreezeKey(treasuryPublicKey)
                 .setWipeKey(treasuryPublicKey)
                 .freezeWith(hederaClient);
+
+//        byte[] txBytes = tx.freezeWith(hederaClient).toBytes();
+//        String base64Message = Base64.getEncoder().encodeToString(txBytes);
+//
+//        signMessage("0", base64Message);
 
         TransactionResponse response = tx.sign(treasuryPrivateKey).execute(hederaClient);
         TransactionReceipt receipt = response.getReceipt(hederaClient);
