@@ -11,20 +11,39 @@ import com.example.HederaStableCoin.repository.InMemoryStablecoinStore;
 import com.example.HederaStableCoin.repository.MultiSigTransactionRepository;
 import com.example.HederaStableCoin.repository.StablecoinRepository;
 import com.example.HederaStableCoin.util.FireblocksJwtGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fireblocks.sdk.ApiResponse;
+import com.fireblocks.sdk.Fireblocks;
+import com.fireblocks.sdk.model.*;
 import com.hedera.hashgraph.sdk.*;
+import com.hedera.hashgraph.sdk.Transaction;
+import com.hedera.hashgraph.sdk.TransactionResponse;
+import jakarta.xml.bind.DatatypeConverter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
+import org.threeten.bp.Instant;
 
 @Service
 public class StablecoinService {
+
+    @Value("${fireblock.api.key}")
+    private String apiKey;
+
+    @Value("${fireblock.api.secret}")
+    private String secretKeyPath;
 
     @Autowired
     private Client hederaClient;
@@ -42,34 +61,13 @@ public class StablecoinService {
     private StablecoinRepository stablecoinRepository;
 
     @Autowired
-    private FireblocksJwtGenerator fireblocksJwtGenerator;
+    private FireblocksJwtGenerator FireblocksJwtUtil;
 
-//    public String signMessage(String vaultAccountId, String base64Message) throws Exception {
-//        String jwtToken = fireblocksJwtGenerator.generateJwt();
-//        System.out.println("jwtToken: " + jwtToken);
-//        URL url = new URL("https://sandbox-api.fireblocks.io/v1/vault/accounts/" + vaultAccountId + "/sign_message");
-//        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-//
-//        conn.setRequestMethod("POST");
-//        conn.setRequestProperty("Authorization", "Bearer " + jwtToken);
-//        conn.setRequestProperty("Content-Type", "application/json");
-//        conn.setDoOutput(true);
-//
-//
-//        String jsonInputString = "{ \"messages\": [\"" + base64Message + "\"] }";
-//
-//        try (OutputStream os = conn.getOutputStream()) {
-//            byte[] input = jsonInputString.getBytes("utf-8");
-//            os.write(input, 0, input.length);
-//        }
-//
-//        int code = conn.getResponseCode();
-//        if (code == 200 || code == 201) {
-//            return "Success";
-//        } else {
-//            throw new RuntimeException("Failed to sign message: HTTP error code: " + code);
-//        }
-//    }
+    @Autowired
+    private FireblocksService fireblocksService;
+
+    @Autowired
+    private Fireblocks fireblocks;
 
     public StablecoinResponseDTO createStablecoin(StablecoinRequestDTO request) throws Exception {
         AccountId treasuryAccountId = AccountId.fromString(request.getTreasuryAccountId());
@@ -86,16 +84,52 @@ public class StablecoinService {
                 .setSupplyKey(treasuryPublicKey)
                 .setFreezeKey(treasuryPublicKey)
                 .setWipeKey(treasuryPublicKey)
+               // .setExpirationTime(Instant.ofEpochSecond(Instant.now().plusSeconds(60 * 60 * 24 * 365).getEpochSecond()))// 1 year expiration
                 .freezeWith(hederaClient);
 
-//        byte[] txBytes = tx.freezeWith(hederaClient).toBytes();
-//        String base64Message = Base64.getEncoder().encodeToString(txBytes);
-//
-//        signMessage("0", base64Message);
+        byte[] txBytes = tx.toBytes();
+        String base64Message = DatatypeConverter.printHexBinary(txBytes).toLowerCase();
 
-        TransactionResponse response = tx.sign(treasuryPrivateKey).execute(hederaClient);
-        TransactionReceipt receipt = response.getReceipt(hederaClient);
-        TokenId tokenId = receipt.tokenId;
+        TransactionRequest fbTx = new TransactionRequest()
+                .operation(TransactionOperation.RAW)
+                .assetId("HBAR_TEST")
+                .source(new SourceTransferPeerPath()
+                        .type(TransferPeerPathType.VAULT_ACCOUNT)
+                        .id(request.getFireblocksVaultId()))
+                .extraParameters(Map.of(
+                        "rawMessageData", Map.of(
+                                "messages", List.of(
+                                        Map.of("content", base64Message)
+                                )
+                        )
+                ));
+
+        ApiResponse<CreateTransactionResponse> apiResponse =
+                fireblocks.transactions().createTransaction(fbTx, null, null).get();
+        String txId = apiResponse.getData().getId();
+
+        // Wait for the transaction to be signed
+        com.fireblocks.sdk.model.TransactionResponse signedTxDetails;
+        while (true) {
+            signedTxDetails = fireblocks.transactions().getTransaction(txId).get().getData();
+            if ("COMPLETED".equalsIgnoreCase(signedTxDetails.getStatus())) break;
+            if ("FAILED".equalsIgnoreCase(signedTxDetails.getStatus())) break;
+            Thread.sleep(1000);
+        }
+
+        List<SignedMessage> signedMessages = signedTxDetails.getSignedMessages();
+        if( signedMessages == null || signedMessages.isEmpty()) {
+            throw new RuntimeException("No signed messages found in Fireblocks response");
+        }
+        SignedMessage signedMessage = signedMessages.get(0);
+        String content = signedMessage.getContent();
+        byte[] signedBytes = DatatypeConverter.parseHexBinary(content);
+
+
+        Transaction<?> signedTransaction = Transaction.fromBytes(signedBytes);
+        TransactionResponse receipt = signedTransaction.execute(hederaClient);
+        TransactionReceipt transactionReceipt = receipt.getReceipt(hederaClient);
+        TokenId tokenId = transactionReceipt.tokenId;
 
         AccountEntity treasuryAccount = accountRepository.findByAccountId(request.getTreasuryAccountId());
         String treasuryDisplayName = treasuryAccount != null ? treasuryAccount.getDisplayName() : null;
@@ -116,8 +150,9 @@ public class StablecoinService {
                 request.getName(),
                 request.getSymbol(),
                 treasuryDisplayName,
-                receipt
+                transactionReceipt
         );
+
     }
 
     public List<Map<String, Object>> getAllStablecoinBalances() throws TimeoutException, PrecheckStatusException {

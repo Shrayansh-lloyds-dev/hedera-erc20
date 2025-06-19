@@ -17,4 +17,6 @@ public class StablecoinRequestDTO {
     private int decimals;
     private String treasuryAccountId;
     private String treasuryPrivateKey;
+    private String fireblocksVaultId;
+//    private String assetId;
 }

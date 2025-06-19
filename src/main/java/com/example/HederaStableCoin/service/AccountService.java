@@ -7,6 +7,7 @@ import com.example.HederaStableCoin.repository.AccountRepository;
 import com.example.HederaStableCoin.repository.InMemoryRoleStore;
 import com.example.HederaStableCoin.repository.InMemoryStablecoinStore;
 import com.hedera.hashgraph.sdk.*;
+import jakarta.xml.bind.DatatypeConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +29,8 @@ public class AccountService {
 
     public AccountResponseDTO createAccount(AccountRequestDTO request) throws Exception {
         PrivateKey privateKey = PrivateKey.generateED25519();
+        byte[] keyBytes = privateKey.toBytes();
+        String hexEncodedPrivateKey = DatatypeConverter.printHexBinary(keyBytes);
         PublicKey publicKey = privateKey.getPublicKey();
         AccountCreateTransaction transaction = new AccountCreateTransaction().setKey(publicKey).setInitialBalance(new Hbar(10));
         TransactionResponse txResponse = transaction.execute(hederaClient);
@@ -41,6 +44,7 @@ public class AccountService {
         response.setPublicKey(publicKey.toString());
         response.setRole(request.getRole());
         response.setAlias(request.getAlias());
+        response.setPrivateKey(hexEncodedPrivateKey);
 
         AccountEntity entity = new AccountEntity();
         entity.setAccountId(response.getAccountId());
@@ -48,6 +52,7 @@ public class AccountService {
         entity.setPublicKey(response.getPublicKey());
         entity.setRole(response.getRole());
         entity.setDisplayName(request.getAlias());
+        entity.setPrivateKey(hexEncodedPrivateKey);
         accountRepository.save(entity);
 
         return response;
