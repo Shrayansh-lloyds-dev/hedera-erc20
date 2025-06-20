@@ -2,7 +2,9 @@ package com.example.HederaStableCoin.service;
 
 import java.math.BigDecimal;
 
+import com.example.HederaStableCoin.model.dto.EthTransactionDetailsDTO;
 import com.example.HederaStableCoin.model.dto.EthTransactionResponseDTO;
+import com.example.HederaStableCoin.model.dto.EthereumBalanceDTO;
 import org.springframework.stereotype.Service;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
@@ -10,6 +12,7 @@ import org.web3j.crypto.Keys;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.response.EthTransaction;
+import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.core.methods.response.Web3ClientVersion;
 import org.web3j.protocol.http.HttpService;
@@ -61,26 +64,41 @@ public class EthereumService {
         return "Address: " + address + "\nPrivate Key: " + privateKey;
     }
 
-    // Get transaction details by hash
-    public String getTransactionByHash(String txHash) throws Exception {
+    public EthTransactionDetailsDTO getTransactionByHash(String txHash) throws Exception {
+        EthTransactionDetailsDTO dto = new EthTransactionDetailsDTO();
         EthTransaction transactionResponse = web3j.ethGetTransactionByHash(txHash).send();
         if (transactionResponse.getTransaction().isPresent()) {
-            // Fetch the receipt
+            Transaction tx = transactionResponse.getTransaction().get();
+            dto.setTransactionHash(tx.getHash());
+            dto.setFrom(tx.getFrom());
+            dto.setTo(tx.getTo());
+            dto.setValue(tx.getValue().toString());
+            dto.setBlockHash(tx.getBlockHash());
+            dto.setBlockNumber(tx.getBlockNumber() != null ? tx.getBlockNumber().toString() : null);
+            dto.setGas(tx.getGas().toString());
+            dto.setGasPrice(tx.getGasPrice().toString());
+
             var receiptResponse = web3j.ethGetTransactionReceipt(txHash).send();
             if (receiptResponse.getTransactionReceipt().isPresent()) {
-                return receiptResponse.getTransactionReceipt().get().toString();
+                TransactionReceipt receipt = receiptResponse.getTransactionReceipt().get();
+                dto.setStatus(receipt.getStatus());
+                dto.setGasUsed(receipt.getGasUsed().toString());
+                dto.setContractAddress(receipt.getContractAddress());
             } else {
-                return "Transaction found, but receipt not yet available (pending or failed).";
+                dto.setError("Transaction found, but receipt not yet available (pending or failed).");
             }
         } else {
-            return "Transaction not found";
+            dto.setError("Transaction not found");
         }
+        return dto;
     }
 
-    public String getBalance(String address) throws Exception {
-        // Returns balance in Ether as a String
+    public EthereumBalanceDTO getBalance(String address) throws Exception {
         var ethGetBalance = web3j.ethGetBalance(address, DefaultBlockParameterName.LATEST).send();
-        return Convert.fromWei(ethGetBalance.getBalance().toString(), Convert.Unit.ETHER).toPlainString();
+        EthereumBalanceDTO dto = new EthereumBalanceDTO();
+        dto.setAddress(address);
+        dto.setBalance(Convert.fromWei(ethGetBalance.getBalance().toString(), Convert.Unit.ETHER).toPlainString());
+        return dto;
     }
 
     public boolean isValidAddress(String address) {

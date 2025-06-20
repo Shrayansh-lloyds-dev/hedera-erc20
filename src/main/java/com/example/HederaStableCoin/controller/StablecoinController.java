@@ -111,5 +111,11 @@ public class StablecoinController {
         MintTokenResponse response = stablecoinService.mintToken(request);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
+
+
+    @GetMapping("/calculate-fees")
+    public FeeCalculationResponseDTO calculateFees(@RequestParam double amount) {
+        return stablecoinService.calculateFees(amount);
+    }
 }
 

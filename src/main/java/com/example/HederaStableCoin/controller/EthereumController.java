@@ -2,7 +2,9 @@ package com.example.HederaStableCoin.controller;
 
 import java.math.BigDecimal;
 
+import com.example.HederaStableCoin.model.dto.EthTransactionDetailsDTO;
 import com.example.HederaStableCoin.model.dto.EthTransactionResponseDTO;
+import com.example.HederaStableCoin.model.dto.EthereumBalanceDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,7 +33,7 @@ public class EthereumController {
     }
 
     @GetMapping("/transaction/{hash}")
-    public String getTransactionByHash(@PathVariable String hash) throws Exception {
+    public EthTransactionDetailsDTO getTransactionByHash(@PathVariable String hash) throws Exception {
         return ethereumService.getTransactionByHash(hash);
     }
 
@@ -45,7 +47,7 @@ public class EthereumController {
     }
 
     @GetMapping("/balance/{address}")
-    public String getBalance(@PathVariable String address) throws Exception {
+    public EthereumBalanceDTO getBalance(@PathVariable String address) throws Exception {
         return ethereumService.getBalance(address);
     }
 

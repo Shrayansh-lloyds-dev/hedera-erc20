@@ -472,4 +472,10 @@ public class StablecoinService {
             return new MintTokenResponse(500, "Mint failed: " + e.getMessage(), request.getTokenId(), 0, null);
         }
     }
+
+    public FeeCalculationResponseDTO calculateFees(double amount) {
+        final double FIXED_FEE = 0.0001;
+        return new FeeCalculationResponseDTO(amount, FIXED_FEE);
+    }
+
 }
